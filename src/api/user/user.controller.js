@@ -2,12 +2,21 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('./user.model');
 
+const sendEmail = require('../../ultils/email');
+
 exports.signup = async (req, res, next) => {
     const { password } = req.body;
     const hashPassword = await bcrypt.hash(password, 12);
     req.body.password = hashPassword;
 
     const newUser = await User.create(req.body);
+
+    const mailOptions = {
+        email:'vuthanh20132950@gmail.com',
+        subject: 'QuynhTran',
+        message: 'Khi nao Quynh ve',
+    }
+    await sendEmail(mailOptions);
 
     res.status(201).json({
         status: 'success',
