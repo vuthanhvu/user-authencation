@@ -11,4 +11,8 @@ router
     .route('/login')
     .post(userController.login);
 
+router
+    .route('/update-me')
+    .patch(userController.uploadUserPhoto, userController.resizeUserPhoto, userController.updateMe);
+
 module.exports = router;

@@ -17,8 +17,10 @@
     "mongoose": "5",
     "mongooses": "^1.0.0",
     "morgan": "^1.10.0",
+    "multer": "^1.4.2",
     "nodemailer": "^6.6.3",
     "nodemon": "^2.0.9",
+    "sharp": "^0.28.3",
     "signale": "^1.4.0"
   }
 }

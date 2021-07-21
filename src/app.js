@@ -7,10 +7,11 @@ const userRouter = require('./api/user/user.routes');
 const app = express();
 
 // middleware
+app.use(express.static(`${__dirname}/src/public`));
 app.use(express.json());
-app.use(express.static(`${__dirname}/public`));
+app.use(express.urlencoded({ extended: true }));
 
 app.use('/user', userRouter);
 
 
-  module.exports = app;
+module.exports = app;

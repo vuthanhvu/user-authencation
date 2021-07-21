@@ -1,8 +1,51 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const sharp = require('sharp');
+
 const User = require('./user.model');
 
 const sendEmail = require('../../ultils/email');
+
+// const multerStorage = multer.diskStorage({
+//     destination: (req, file ,cb) => {
+//         cb(null, 'src/public/img/users');
+//     },
+//     filename: (req, file, cb) => {
+//         const ext = file.mimetype.split('/')[1];
+//         cb(null, `user-${Date.now()}.${ext}`);
+//     }
+// });
+
+const multerStorage = multer.memoryStorage();
+const multerFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image')) {
+        cb(null, true);
+    } else {
+        cb('Not image', false);
+    }
+}
+
+const upload = multer({
+    storage: multerStorage,
+    fileFilter: multerFilter,
+})
+
+exports.uploadUserPhoto = upload.single('photo');
+exports.resizeUserPhoto = async (req, res, next) => {
+    if (!req.file) next();
+
+    req.file.filename = `user-${Date.now()}-500x500.jpeg`;
+    console.log('===========', req.file);
+
+    await sharp(req.file.buffer)
+        .resize(500, 500)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`src/public/img/users/${req.file.filename}`);
+    console.log('===========1');
+    next();
+};
 
 exports.signup = async (req, res, next) => {
     const { password } = req.body;
@@ -12,7 +55,7 @@ exports.signup = async (req, res, next) => {
     const newUser = await User.create(req.body);
 
     const mailOptions = {
-        email:'vuthanh20132950@gmail.com',
+        email: 'vuthanh20132950@gmail.com',
         subject: 'QuynhTran',
         message: 'Khi nao Quynh ve',
     }
@@ -49,10 +92,42 @@ exports.login = async (req, res, next) => {
         })
     }
     const token = signToken(userFound._id);
+    const cookieOption = {
+        httpOnly: true,
+        expires: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+    }
+    if (process.env.NODE_ENV == 'production') cookieOption.secure = true;
+
+    res.cookie('jwt', token, cookieOption);
 
     return res.status(200).json({
         status: 'success',
         token,
+    })
+}
+
+exports.updateMe = async (req, res, next) => {
+    const userFound = await User.findOne({
+        name: req.body.name
+    });
+    if (!userFound) {
+        return res.status(404).json({
+            message: 'User not exits'
+        })
+    }
+    let filteredBody = {
+        photo: '1',
+        name: '1',
+    };
+    if (req.file) filteredBody.photo = req.file.filename;
+    if (req.body.user) filteredBody.name = req.body.name;
+    const updatedUser = await User.findByIdAndUpdate(userFound._id, filteredBody, {
+        new: true,
+        runValidator: true,
+    });
+    return res.status(200).json({
+        status: 'success',
+        data: updatedUser,
     })
 }
 
