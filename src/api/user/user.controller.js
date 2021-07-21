@@ -47,6 +47,46 @@ exports.resizeUserPhoto = async (req, res, next) => {
     next();
 };
 
+exports.uploadMultiPhotos = upload.fields([
+    {name: 'imageCover', maxCount: 1},
+    {name: 'images', maxCount: 3},
+])
+
+exports.resizeMultiPhotos = async (req, res, next) => {
+    if(!req.files.imageCover || !req.files.images) return next();
+    const fileNameImagesCover = `user-${Date.now()}-500x500.jpeg`;
+    req.body.images = [];
+
+    const newPromiseCoverImages =
+        sharp(req.files.imageCover[0].buffer)
+            .resize(500, 500)
+            .toFormat('jpeg')
+            .jpeg({ quality: 90 })
+            .toFile(`src/public/img/users/${fileNameImagesCover}`);
+
+    const newPromiseImages = req.files.images.map((file, i) => {
+        const fileNameImage = `user-${Date.now()}-500x500-${i + 1}.jpeg`;
+        req.body.images.push(fileNameImage);
+        return sharp(file.buffer)
+            .resize(500, 500)
+            .toFormat('jpeg')
+            .jpeg({ quality: 90 })
+            .toFile(`src/public/img/users/${fileNameImage}`);
+    });
+
+    newPromiseImages.push(newPromiseCoverImages);
+    await Promise.all(newPromiseImages);
+    req.body.fileName = fileNameImagesCover;
+    next();
+}
+
+exports.saveMultiPhotos = async (req, res, next) => {
+    console.log('2==========>', req.body);
+    return res.status(200).json({
+        message: 'Love me to success!!!',
+    })
+}
+
 exports.signup = async (req, res, next) => {
     const { password } = req.body;
     const hashPassword = await bcrypt.hash(password, 12);
@@ -116,8 +156,8 @@ exports.updateMe = async (req, res, next) => {
         })
     }
     let filteredBody = {
-        photo: '1',
-        name: '1',
+        photo: 'Chanh.jpg',
+        name: 'Chanh',
     };
     if (req.file) filteredBody.photo = req.file.filename;
     if (req.body.user) filteredBody.name = req.body.name;

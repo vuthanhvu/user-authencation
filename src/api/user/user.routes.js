@@ -15,4 +15,8 @@ router
     .route('/update-me')
     .patch(userController.uploadUserPhoto, userController.resizeUserPhoto, userController.updateMe);
 
+router
+    .route('/upload-multi-photos')
+    .patch(userController.uploadMultiPhotos, userController.resizeMultiPhotos, userController.saveMultiPhotos);
+
 module.exports = router;
