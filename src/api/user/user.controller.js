@@ -6,6 +6,8 @@ const sharp = require('sharp');
 const User = require('./user.model');
 
 const sendEmail = require('../../ultils/email');
+const Email = require('../../ultils/emailClass');
+
 
 // const multerStorage = multer.diskStorage({
 //     destination: (req, file ,cb) => {
@@ -100,6 +102,9 @@ exports.signup = async (req, res, next) => {
         message: 'Khi nao Quynh ve',
     }
     await sendEmail(mailOptions);
+
+    const email = new Email();
+    await email(user,'12345').sendEmail();
 
     res.status(201).json({
         status: 'success',
