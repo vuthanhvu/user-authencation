@@ -7,6 +7,7 @@ const User = require('./user.model');
 
 const sendEmail = require('../../ultils/email');
 const Email = require('../../ultils/emailClass');
+const SendGridEmail = require('../../ultils/sendGridEmail');
 
 
 // const multerStorage = multer.diskStorage({
@@ -96,15 +97,21 @@ exports.signup = async (req, res, next) => {
 
     const newUser = await User.create(req.body);
 
-    const mailOptions = {
-        email: 'vuthanh20132950@gmail.com',
-        subject: 'QuynhTran',
-        message: 'Khi nao Quynh ve',
-    }
-    await sendEmail(mailOptions);
+    // const mailOptions = {
+    //     email: 'vuthanh20132950@gmail.com',
+    //     subject: 'QuynhTran',
+    //     message: 'Khi nao Quynh ve',
+    // }
+    // await sendEmail(mailOptions);
+    // await new Email(newUser, '12345').sendWelcome();
 
-    const email = new Email();
-    await email(user,'12345').sendEmail();
+    const mailOptions = {
+        to: newUser.email,
+        from: 'vuthanh20132950@gmail.com', // sender
+        subject: 'Hello Quynh!!!',
+        text: 'Khi nao Quynh ve!',
+    }
+    await new SendGridEmail().sendMail(mailOptions);
 
     res.status(201).json({
         status: 'success',
